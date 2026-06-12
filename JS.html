@@ -1,0 +1,784 @@
+<script>
+// ===================================================================
+// PHYSIX Legends - Main Game Logic
+// ===================================================================
+
+let gameState = {
+  isLoggedIn: false,
+  playerId: null,
+  playerData: {},
+  currentMode: null,
+  currentGrade: null,
+  currentLesson: null,
+  currentDifficulty: null,
+  currentStage: null,
+  currentQuestion: 0,
+  currentQuestionData: null,
+  selectedTokens: [],
+  gameStartTime: null,
+  stageStartTime: null,
+  preTestAnswers: [],
+  preTestStartTime: null,
+  preTestScore: 0
+};
+
+// ===================================================================
+// INITIALIZATION
+// ===================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeEventListeners();
+  showScreen('loadingScreen');
+  
+  setTimeout(() => {
+    showScreen('authScreen');
+  }, 2000);
+});
+
+// ===================================================================
+// SCREEN MANAGEMENT
+// ===================================================================
+
+function showScreen(screenId) {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(screen => screen.classList.remove('active'));
+  
+  const targetScreen = document.getElementById(screenId);
+  if (targetScreen) {
+    targetScreen.classList.add('active');
+  }
+}
+
+// ===================================================================
+// EVENT LISTENERS SETUP
+// ===================================================================
+
+function initializeEventListeners() {
+  // Auth Tabs
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      switchAuthTab(this.dataset.tab);
+    });
+  });
+
+  // Login Form
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+  // Register Form
+  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+
+  // Logout
+  document.getElementById('btnLogout').addEventListener('click', handleLogout);
+
+  // Dashboard
+  document.getElementById('btnStartGame').addEventListener('click', () => {
+    gameState.currentMode = null;
+    showScreen('modeScreen');
+  });
+
+  // Mode Selection
+  document.querySelectorAll('.mode-card').forEach(card => {
+    card.addEventListener('click', function() {
+      if (!this.classList.contains('coming-soon')) {
+        selectCard(this, '.mode-card');
+        gameState.currentMode = this.dataset.mode;
+      }
+    });
+  });
+
+  document.getElementById('btnSelectMode').addEventListener('click', () => {
+    if (gameState.currentMode) {
+      gameState.currentGrade = null;
+      showScreen('gradeScreen');
+    }
+  });
+
+  document.getElementById('btnBackFromMode').addEventListener('click', () => {
+    showScreen('dashboardScreen');
+  });
+
+  // Grade Selection
+  document.querySelectorAll('.grade-card').forEach(card => {
+    card.addEventListener('click', function() {
+      if (!this.classList.contains('coming-soon')) {
+        selectCard(this, '.grade-card');
+        gameState.currentGrade = this.dataset.grade;
+      }
+    });
+  });
+
+  document.getElementById('btnSelectGrade').addEventListener('click', () => {
+    if (gameState.currentGrade) {
+      gameState.currentLesson = null;
+      showScreen('lessonScreen');
+      loadLessons();
+    }
+  });
+
+  document.getElementById('btnBackFromGrade').addEventListener('click', () => {
+    showScreen('modeScreen');
+  });
+
+  // Lesson Selection
+  document.getElementById('btnBackFromLesson').addEventListener('click', () => {
+    showScreen('gradeScreen');
+  });
+
+  // Difficulty Selection
+  document.querySelectorAll('.difficulty-card').forEach(card => {
+    card.addEventListener('click', function() {
+      selectCard(this, '.difficulty-card');
+      gameState.currentDifficulty = this.dataset.difficulty;
+    });
+  });
+
+  document.getElementById('btnSelectDifficulty').addEventListener('click', () => {
+    if (gameState.currentDifficulty) {
+      showScreen('preTestScreen');
+      loadPreTest();
+    }
+  });
+
+  document.getElementById('btnBackFromDifficulty').addEventListener('click', () => {
+    showScreen('lessonScreen');
+  });
+
+  // Pre-Test
+  document.getElementById('btnStartPreTest').addEventListener('click', startPreTest);
+  document.getElementById('btnPrevQuestion').addEventListener('click', previousPreTestQuestion);
+  document.getElementById('btnNextQuestion').addEventListener('click', nextPreTestQuestion);
+  document.getElementById('btnSubmitPreTest').addEventListener('click', submitPreTest);
+
+  // Arena (Game)
+  document.getElementById('btnCheckAnswer').addEventListener('click', checkAnswer);
+  document.getElementById('btnClearAnswer').addEventListener('click', clearAnswer);
+  document.getElementById('btnNextQuestion').addEventListener('click', nextQuestion);
+  document.getElementById('btnQuitArena').addEventListener('click', quitArena);
+
+  // Stage Map
+  document.getElementById('btnBackFromStageMap').addEventListener('click', () => {
+    showScreen('modeScreen');
+  });
+
+  document.getElementById('btnBackFromStageMapFull').addEventListener('click', () => {
+    showScreen('modeScreen');
+  });
+
+  // Results
+  document.getElementById('btnRetryStage').addEventListener('click', retryStage);
+  document.getElementById('btnNextStage').addEventListener('click', goToNextStage);
+  document.getElementById('btnContinueToStages').addEventListener('click', goToStageMap);
+
+  // Boss
+  document.getElementById('btnStartBoss').addEventListener('click', startBossStage);
+}
+
+// ===================================================================
+// AUTHENTICATION
+// ===================================================================
+
+function switchAuthTab(tabName) {
+  document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  document.getElementById(tabName + 'Tab').classList.add('active');
+
+  clearAuthErrors();
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const studentId = document.getElementById('loginStudentId').value;
+  const pin = document.getElementById('loginPin').value;
+
+  google.script.run.withSuccessHandler(response => {
+    if (response.success) {
+      gameState.isLoggedIn = true;
+      gameState.playerId = response.playerId;
+      gameState.playerData = response;
+      showDashboard();
+      showScreen('dashboardScreen');
+    } else {
+      showLoginError(response.message);
+    }
+  }).loginPlayer(studentId, pin);
+}
+
+function handleRegister(e) {
+  e.preventDefault();
+  const playerName = document.getElementById('regPlayerName').value;
+  const classroom = document.getElementById('regClassroom').value;
+  const seatNumber = document.getElementById('regSeatNumber').value;
+  const studentId = document.getElementById('regStudentId').value;
+  const pin = document.getElementById('regPin').value;
+  const pinConfirm = document.getElementById('regPinConfirm').value;
+
+  if (pin !== pinConfirm) {
+    showRegisterError('PIN ไม่ตรงกัน');
+    return;
+  }
+
+  if (pin.length !== 4 || isNaN(pin)) {
+    showRegisterError('PIN ต้องเป็นตัวเลข 4 หลัก');
+    return;
+  }
+
+  google.script.run.withSuccessHandler(response => {
+    if (response.success) {
+      alert(response.message);
+      switchAuthTab('login');
+      document.getElementById('loginForm').reset();
+      document.getElementById('registerForm').reset();
+    } else {
+      showRegisterError(response.message);
+    }
+  }).registerNewPlayer(playerName, classroom, seatNumber, studentId, pin);
+}
+
+function handleLogout() {
+  gameState.isLoggedIn = false;
+  gameState.playerId = null;
+  gameState.playerData = {};
+  showScreen('authScreen');
+  document.getElementById('loginForm').reset();
+  document.getElementById('registerForm').reset();
+}
+
+function showLoginError(message) {
+  const errorDiv = document.getElementById('loginError');
+  errorDiv.textContent = message;
+  errorDiv.classList.add('show');
+}
+
+function showRegisterError(message) {
+  const errorDiv = document.getElementById('registerError');
+  errorDiv.textContent = message;
+  errorDiv.classList.add('show');
+}
+
+function clearAuthErrors() {
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('registerError').classList.remove('show');
+}
+
+// ===================================================================
+// DASHBOARD
+// ===================================================================
+
+function showDashboard() {
+  document.getElementById('playerName').textContent = gameState.playerData.playerName;
+  document.getElementById('playerClassroom').textContent = `${gameState.playerData.classroom}/${gameState.playerData.seatNumber}`;
+  document.getElementById('playerScore').textContent = gameState.playerData.totalScore || 0;
+  document.getElementById('playerExp').textContent = gameState.playerData.totalExp || 0;
+  
+  const rankData = RANK_SYSTEM[gameState.playerData.rank || 1];
+  document.getElementById('playerRank').textContent = `${rankData.icon} Rank ${gameState.playerData.rank || 1}`;
+  document.getElementById('playerStars').textContent = `⭐ ${gameState.playerData.totalStars || 0}`;
+
+  loadRanking();
+  loadWrongFormulas();
+}
+
+function loadRanking() {
+  google.script.run.withSuccessHandler(topPlayers => {
+    const rankingList = document.getElementById('rankingList');
+    rankingList.innerHTML = '';
+
+    topPlayers.forEach((player, index) => {
+      const rankDiv = document.createElement('div');
+      rankDiv.className = 'ranking-item';
+      rankDiv.innerHTML = `
+        <div class="ranking-position">#${index + 1}</div>
+        <div class="ranking-info">
+          <div class="ranking-name">${player.playerName}</div>
+          <div class="ranking-score">คะแนน: ${player.totalScore} | EXP: ${player.totalExp}</div>
+        </div>
+      `;
+      rankingList.appendChild(rankDiv);
+    });
+  }).getTopPlayers(5);
+}
+
+function loadWrongFormulas() {
+  const wrongFormulas = gameState.playerData.wrongFormulas || {};
+  const wrongFormulasList = document.getElementById('wrongFormulasList');
+  wrongFormulasList.innerHTML = '';
+
+  const wrongFormulasArray = Object.keys(wrongFormulas).slice(0, 5);
+  
+  if (wrongFormulasArray.length === 0) {
+    wrongFormulasList.innerHTML = '<p style="color: #7f8c8d; text-align: center;">ยังไม่มีสูตรที่ผิด 🎉</p>';
+    return;
+  }
+
+  wrongFormulasArray.forEach(formulaId => {
+    const formula = FORMULA_BANK.find(f => f.id === formulaId);
+    if (formula) {
+      const formulaDiv = document.createElement('div');
+      formulaDiv.className = 'formula-item-card';
+      formulaDiv.innerHTML = `
+        <strong>${formula.topic}</strong>
+        <small>${formula.formula}</small>
+      `;
+      wrongFormulasList.appendChild(formulaDiv);
+    }
+  });
+}
+
+// ===================================================================
+// LESSON LOADING
+// ===================================================================
+
+function loadLessons() {
+  const lessonList = document.getElementById('lessonList');
+  lessonList.innerHTML = '';
+
+  const lessons = LESSONS[gameState.currentGrade][gameState.currentMode];
+
+  lessons.forEach(lesson => {
+    const lessonCard = document.createElement('div');
+    lessonCard.className = `lesson-card ${lesson.active ? 'active' : 'coming-soon'}`;
+    lessonCard.dataset.lessonId = lesson.id;
+    lessonCard.innerHTML = `
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">${lesson.icon}</div>
+      <h2>${lesson.name}</h2>
+      <p>${lesson.description}</p>
+      ${!lesson.active ? '<p class="coming-soon-label">Coming Soon</p>' : ''}
+    `;
+
+    if (lesson.active) {
+      lessonCard.addEventListener('click', function() {
+        selectCard(this, '.lesson-card');
+        gameState.currentLesson = lesson.id;
+      });
+    }
+
+    lessonList.appendChild(lessonCard);
+  });
+
+  // Add select button listener
+  const selectBtn = document.querySelector('[id="btnSelectLesson"]') || document.createElement('button');
+  if (!document.querySelector('[id="btnSelectLesson"]')) {
+    selectBtn.id = 'btnSelectLesson';
+    selectBtn.className = 'btn btn-primary btn-block';
+    selectBtn.textContent = 'เลือกบท';
+    selectBtn.addEventListener('click', () => {
+      if (gameState.currentLesson) {
+        gameState.currentDifficulty = null;
+        showScreen('difficultyScreen');
+      }
+    });
+    document.querySelector('.lesson-container').appendChild(selectBtn);
+  }
+}
+
+// ===================================================================
+// PRE-TEST SYSTEM
+// ===================================================================
+
+function loadPreTest() {
+  gameState.preTestAnswers = new Array(GAME_CONFIG.preTestQuestions).fill(null);
+  document.getElementById('pretestLessonName').textContent = 
+    LESSONS[gameState.currentGrade][gameState.currentMode]
+      .find(l => l.id === gameState.currentLesson)?.name || '';
+}
+
+function startPreTest() {
+  gameState.preTestStartTime = Date.now();
+  gameState.currentQuestion = 0;
+  showScreen('pretestQuestionScreen');
+  showPreTestQuestion(0);
+}
+
+function showPreTestQuestion(questionIndex) {
+  const preTestQuestions = PRETEST_QUESTIONS[`${gameState.currentGrade}_${gameState.currentLesson}`];
+  if (!preTestQuestions || questionIndex >= preTestQuestions.length) return;
+
+  const question = preTestQuestions[questionIndex];
+  gameState.currentQuestion = questionIndex;
+
+  const questionBox = document.getElementById('pretestQuestionBox');
+  questionBox.innerHTML = `
+    <div class="question-title">${question.question}</div>
+    <div class="question-options">
+      ${question.options.map((option, idx) => `
+        <label class="option-label">
+          <input type="radio" name="pretest-answer" value="${idx}" 
+            ${gameState.preTestAnswers[questionIndex] === idx ? 'checked' : ''}>
+          <span>${option}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+
+  document.querySelectorAll('input[name="pretest-answer"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      gameState.preTestAnswers[questionIndex] = parseInt(e.target.value);
+    });
+  });
+
+  // Update progress
+  const progress = ((questionIndex + 1) / GAME_CONFIG.preTestQuestions) * 100;
+  document.getElementById('pretestProgressFill').style.width = progress + '%';
+  document.getElementById('pretestQuestionCount').textContent = `ข้อ ${questionIndex + 1}/${GAME_CONFIG.preTestQuestions}`;
+
+  // Update buttons
+  document.getElementById('btnPrevQuestion').style.display = questionIndex > 0 ? 'block' : 'none';
+  document.getElementById('btnNextQuestion').style.display = questionIndex < GAME_CONFIG.preTestQuestions - 1 ? 'block' : 'none';
+  document.getElementById('btnSubmitPreTest').style.display = questionIndex === GAME_CONFIG.preTestQuestions - 1 ? 'block' : 'none';
+
+  startTimer();
+}
+
+function previousPreTestQuestion() {
+  if (gameState.currentQuestion > 0) {
+    gameState.currentQuestion--;
+    showPreTestQuestion(gameState.currentQuestion);
+  }
+}
+
+function nextPreTestQuestion() {
+  if (gameState.currentQuestion < GAME_CONFIG.preTestQuestions - 1) {
+    gameState.currentQuestion++;
+    showPreTestQuestion(gameState.currentQuestion);
+  }
+}
+
+function submitPreTest() {
+  const preTestQuestions = PRETEST_QUESTIONS[`${gameState.currentGrade}_${gameState.currentLesson}`];
+  let correctCount = 0;
+
+  gameState.preTestAnswers.forEach((answer, idx) => {
+    if (answer === preTestQuestions[idx].correct) {
+      correctCount++;
+    }
+  });
+
+  const accuracy = (correctCount / GAME_CONFIG.preTestQuestions) * 100;
+  const timeUsed = Math.floor((Date.now() - gameState.preTestStartTime) / 1000);
+  const score = Math.floor((correctCount / GAME_CONFIG.preTestQuestions) * 100);
+
+  // Determine recommended level
+  let recommendedLevel = 'easy';
+  if (accuracy >= 90) recommendedLevel = 'hard';
+  else if (accuracy >= 70) recommendedLevel = 'medium';
+
+  gameState.preTestScore = score;
+
+  // Save pre-test result
+  google.script.run.withSuccessHandler(() => {
+    showPreTestResults(score, correctCount, GAME_CONFIG.preTestQuestions - correctCount, accuracy, timeUsed, recommendedLevel);
+  }).savePreTestResult(gameState.playerId, gameState.currentGrade, gameState.currentLesson, {
+    score: score,
+    correctCount: correctCount,
+    wrongCount: GAME_CONFIG.preTestQuestions - correctCount,
+    accuracy: accuracy,
+    timeUsed: timeUsed
+  });
+}
+
+function showPreTestResults(score, correct, wrong, accuracy, timeUsed, recommendedLevel) {
+  document.getElementById('pretestResultScore').textContent = `${score}/100`;
+  document.getElementById('pretestCorrect').textContent = `${correct} ข้อ`;
+  document.getElementById('pretestWrong').textContent = `${wrong} ข้อ`;
+  document.getElementById('pretestAccuracy').textContent = `${Math.floor(accuracy)}%`;
+  document.getElementById('pretestTimeUsed').textContent = `${Math.floor(timeUsed / 60)} นาที`;
+  document.getElementById('recommendedLevel').textContent = DIFFICULTY_CONFIG[recommendedLevel].name;
+
+  showScreen('pretestResultScreen');
+}
+
+function goToStageMap() {
+  gameState.currentDifficulty = 'easy'; // Default to easy after pre-test
+  showStageMap();
+}
+
+// ===================================================================
+// TIMER
+// ===================================================================
+
+function startTimer() {
+  const timerValue = document.getElementById('timerValue');
+  let seconds = 0;
+
+  const timerInterval = setInterval(() => {
+    seconds++;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    timerValue.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }, 1000);
+
+  // Store interval ID for cleanup (optional)
+  window.currentTimerInterval = timerInterval;
+}
+
+// ===================================================================
+// STAGE MAP
+// ===================================================================
+
+function showStageMap() {
+  const lessonName = LESSONS[gameState.currentGrade][gameState.currentMode]
+    .find(l => l.id === gameState.currentLesson)?.name || '';
+  
+  document.getElementById('stageMapTitle').textContent = 
+    `${lessonName} - ${DIFFICULTY_CONFIG[gameState.currentDifficulty].name}`;
+
+  const stageMapContent = document.getElementById('stageMapContent');
+  stageMapContent.innerHTML = '';
+
+  for (let i = 1; i <= GAME_CONFIG.stagesPerLesson; i++) {
+    const stageTile = document.createElement('div');
+    stageTile.className = 'stage-tile';
+    
+    const stageTheme = STAGE_THEMES[i];
+    const isLocked = i > 1; // First stage unlocked, others locked initially
+    const isCompleted = false; // Check from player data if needed
+
+    if (isLocked) stageTile.classList.add('locked');
+    if (isCompleted) stageTile.classList.add('completed');
+    if (i === 1) stageTile.classList.add('active');
+
+    stageTile.innerHTML = `
+      ${isLocked ? '<div class="stage-lock">🔒</div>' : ''}
+      <div class="stage-number">Stage ${i}</div>
+      <div class="stage-label">${stageTheme.name}</div>
+      <div class="stage-stars">⭐⭐⭐</div>
+    `;
+
+    if (!isLocked) {
+      stageTile.addEventListener('click', () => {
+        gameState.currentStage = i;
+        startStage(i);
+      });
+    }
+
+    stageMapContent.appendChild(stageTile);
+  }
+
+  showScreen('stageMapScreen');
+}
+
+// ===================================================================
+// FORMULA ARENA (GAME)
+// ===================================================================
+
+function startStage(stageNum) {
+  gameState.currentStage = stageNum;
+  gameState.currentQuestion = 0;
+  gameState.selectedTokens = [];
+  gameState.stageStartTime = Date.now();
+  gameState.gameStartTime = Date.now();
+
+  loadNextArenaQuestion();
+}
+
+function getFilteredFormulas(stageNum) {
+  const stageTheme = STAGE_THEMES[stageNum];
+  return FORMULA_BANK.filter(formula =>
+    formula.gradeId === gameState.currentGrade &&
+    formula.modeId === gameState.currentMode &&
+    formula.lessonId === gameState.currentLesson &&
+    stageTheme.tags.some(tag => formula.tags.includes(tag))
+  );
+}
+
+function loadNextArenaQuestion() {
+  if (gameState.currentQuestion >= GAME_CONFIG.questionsPerStage) {
+    endStage();
+    return;
+  }
+
+  const filteredFormulas = getFilteredFormulas(gameState.currentStage);
+  if (filteredFormulas.length === 0) {
+    alert('ไม่มีสูตรสำหรับด่านนี้');
+    showStageMap();
+    return;
+  }
+
+  const randomFormula = filteredFormulas[Math.floor(Math.random() * filteredFormulas.length)];
+  gameState.currentQuestionData = randomFormula;
+
+  displayArenaQuestion(randomFormula);
+  showScreen('arenaScreen');
+}
+
+function displayArenaQuestion(formula) {
+  document.getElementById('arenaProgress').textContent = `ข้อ ${gameState.currentQuestion + 1}/${GAME_CONFIG.questionsPerStage}`;
+  document.getElementById('arenaQuestionNum').textContent = `ข้อที่ ${gameState.currentQuestion + 1}`;
+  document.getElementById('arenaScore').textContent = `คะแนน: 0`;
+
+  // Display formula with template
+  const formulaDisplay = document.getElementById('formulaDisplay');
+  formulaDisplay.innerHTML = `<div style="font-size: 1.2rem; text-align: center;">${formula.template}</div>`;
+
+  // Generate token bank
+  const tokenBank = document.getElementById('tokenBank');
+  tokenBank.innerHTML = '';
+  
+  const correctTokens = Object.values(formula.slots);
+  const allTokens = [...correctTokens, ...formula.distractors];
+  const shuffledTokens = allTokens.sort(() => Math.random() - 0.5);
+
+  shuffledTokens.forEach(token => {
+    const tokenEl = document.createElement('div');
+    tokenEl.className = 'token';
+    tokenEl.textContent = token;
+    tokenEl.draggable = true;
+    tokenEl.addEventListener('dragstart', handleTokenDragStart);
+    tokenEl.addEventListener('dragend', handleTokenDragEnd);
+    tokenBank.appendChild(tokenEl);
+  });
+
+  // Create formula answer area
+  const formulaAnswer = document.getElementById('formulaAnswer');
+  formulaAnswer.innerHTML = '';
+  
+  Object.keys(formula.slots).forEach(() => {
+    const slot = document.createElement('div');
+    slot.className = 'token-slot';
+    slot.textContent = '?';
+    slot.addEventListener('dragover', handleDragOver);
+    slot.addEventListener('drop', handleDrop);
+    formulaAnswer.appendChild(slot);
+  });
+
+  gameState.selectedTokens = new Array(Object.keys(formula.slots).length).fill(null);
+  gameState.wrongAttempts = 0;
+}
+
+function handleTokenDragStart(e) {
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', e.target.textContent);
+}
+
+function handleTokenDragEnd(e) {
+  // Optional: Add visual feedback
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.target.style.background = 'rgba(33, 150, 243, 0.2)';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.target.style.background = '';
+  
+  const token = e.dataTransfer.getData('text/plain');
+  const slotIndex = Array.from(document.querySelectorAll('.token-slot')).indexOf(e.target);
+  
+  gameState.selectedTokens[slotIndex] = token;
+  e.target.textContent = token;
+  e.target.classList.add('filled');
+}
+
+function checkAnswer() {
+  const formula = gameState.currentQuestionData;
+  const correctTokens = Object.values(formula.slots);
+  
+  const isCorrect = gameState.selectedTokens.every((token, idx) => token === correctTokens[idx]);
+
+  const feedbackArea = document.getElementById('feedbackArea');
+  
+  if (isCorrect) {
+    feedbackArea.className = 'feedback-area feedback-correct';
+    feedbackArea.textContent = '✓ ถูกต้อง!';
+    
+    document.getElementById('btnCheckAnswer').style.display = 'none';
+    document.getElementById('btnClearAnswer').style.display = 'none';
+    document.getElementById('btnNextQuestion').style.display = 'block';
+    
+    gameState.currentQuestion++;
+  } else {
+    gameState.wrongAttempts = (gameState.wrongAttempts || 0) + 1;
+    feedbackArea.className = 'feedback-area feedback-wrong';
+    feedbackArea.textContent = `✗ ผิด! (ครั้งที่ ${gameState.wrongAttempts})`;
+  }
+}
+
+function clearAnswer() {
+  document.querySelectorAll('.token-slot').forEach(slot => {
+    slot.textContent = '?';
+    slot.classList.remove('filled');
+  });
+  gameState.selectedTokens = gameState.selectedTokens.map(() => null);
+  document.getElementById('feedbackArea').innerHTML = '';
+}
+
+function nextQuestion() {
+  document.getElementById('btnCheckAnswer').style.display = 'block';
+  document.getElementById('btnClearAnswer').style.display = 'block';
+  document.getElementById('btnNextQuestion').style.display = 'none';
+  document.getElementById('feedbackArea').innerHTML = '';
+  
+  clearAnswer();
+  loadNextArenaQuestion();
+}
+
+function quitArena() {
+  if (confirm('ออกจากด่าน? (จะไม่บันทึกคะแนน)')) {
+    showStageMap();
+  }
+}
+
+function endStage() {
+  const timeUsed = Math.floor((Date.now() - gameState.stageStartTime) / 1000);
+  const score = 100; // Simplified scoring
+  const stars = 3; // Simplified stars
+  
+  showStageResult(score, stars, timeUsed);
+}
+
+function showStageResult(score, stars, timeUsed) {
+  document.getElementById('stageScore').textContent = `${score}/100`;
+  document.getElementById('starsEarned').textContent = '⭐'.repeat(stars);
+  document.getElementById('stageTime').textContent = `${timeUsed} วินาที`;
+  document.getElementById('stageAccuracy').textContent = '100%';
+
+  // Save stage result
+  google.script.run.withSuccessHandler(result => {
+    showScreen('stageResultScreen');
+  }).saveStageResult(
+    gameState.playerId,
+    gameState.currentGrade,
+    gameState.currentMode,
+    gameState.currentLesson,
+    gameState.currentDifficulty,
+    gameState.currentStage,
+    score,
+    stars,
+    []
+  );
+}
+
+function retryStage() {
+  startStage(gameState.currentStage);
+}
+
+function goToNextStage() {
+  if (gameState.currentStage >= GAME_CONFIG.stagesPerLesson) {
+    if (gameState.currentStage === GAME_CONFIG.stagesPerLesson) {
+      showScreen('bossStageScreen');
+    }
+  } else {
+    gameState.currentStage++;
+    startStage(gameState.currentStage);
+  }
+}
+
+function startBossStage() {
+  gameState.currentStage = GAME_CONFIG.stagesPerLesson + 1;
+  startStage(gameState.currentStage);
+}
+
+// ===================================================================
+// UTILITY FUNCTIONS
+// ===================================================================
+
+function selectCard(element, selector) {
+  document.querySelectorAll(selector).forEach(card => card.classList.remove('active'));
+  element.classList.add('active');
+}
+</script>
