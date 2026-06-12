@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2c3e50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PHYSIX Legends</title>
+  
+  <?!= include('CSS'); ?>
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="screen active">
+      <div class="loading-content">
+        <div class="loading-logo">⚛️</div>
+        <h1>PHYSIX Legends</h1>
+        <p>เกมฝึกสูตรฟิสิกส์ระดับมัธยมศึกษา</p>
+        <div class="loading-bar">
+          <div class="loading-progress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="screen">
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="auth-logo">⚛️</div>
+          <h1>PHYSIX Legends</h1>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">เข้าสู่ระบบ</button>
+          <button class="auth-tab" data-tab="register">สมัครครั้งแรก</button>
+        </div>
+
+        <!-- Login Tab -->
+        <div id="loginTab" class="auth-form active">
+          <form id="loginForm">
+            <div class="form-group">
+              <label>รหัสนักเรียน</label>
+              <input type="text" id="loginStudentId" placeholder="เช่น 6401234" required>
+            </div>
+            <div class="form-group">
+              <label>PIN 4 หลัก</label>
+              <input type="password" id="loginPin" placeholder="••••" maxlength="4" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+            <div id="loginError" class="error-message"></div>
+          </form>
+        </div>
+
+        <!-- Register Tab -->
+        <div id="registerTab" class="auth-form">
+          <form id="registerForm">
+            <div class="form-group">
+              <label>ชื่อผู้เล่น</label>
+              <input type="text" id="regPlayerName" placeholder="เช่น วรินทร์" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>ห้อง</label>
+                <input type="text" id="regClassroom" placeholder="4/1" required>
+              </div>
+              <div class="form-group">
+                <label>เลขที่</label>
+                <input type="number" id="regSeatNumber" placeholder="10" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>รหัสนักเรียน</label>
+              <input type="text" id="regStudentId" placeholder="6401234" required>
+            </div>
+            <div class="form-group">
+              <label>PIN 4 หลัก</label>
+              <input type="password" id="regPin" placeholder="••••" maxlength="4" required>
+            </div>
+            <div class="form-group">
+              <label>ยืนยัน PIN</label>
+              <input type="password" id="regPinConfirm" placeholder="••••" maxlength="4" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">สมัครสมาชิก</button>
+            <div id="registerError" class="error-message"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen">
+      <div class="dashboard-container">
+        <!-- Header with Profile -->
+        <div class="dashboard-header">
+          <div class="profile-card">
+            <div class="profile-avatar">⚛️</div>
+            <div class="profile-info">
+              <h2 id="playerName"></h2>
+              <p id="playerClassroom"></p>
+            </div>
+            <button id="btnLogout" class="btn-icon">🚪</button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="playerScore">0</div>
+            <div class="stat-label">คะแนน</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="playerExp">0</div>
+            <div class="stat-label">EXP</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="playerRank">Rank 1</div>
+            <div class="stat-label">อันดับ</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="playerStars">⭐ 0</div>
+            <div class="stat-label">ดาวสะสม</div>
+          </div>
+        </div>
+
+        <!-- Ranking -->
+        <div class="ranking-section">
+          <h3>🏆 Top 5 ผู้เล่น</h3>
+          <div id="rankingList" class="ranking-list"></div>
+        </div>
+
+        <!-- Play Button -->
+        <button id="btnStartGame" class="btn btn-primary btn-block btn-large">
+          🎮 เริ่มเล่น
+        </button>
+
+        <!-- Wrong Formulas to Review -->
+        <div id="wrongFormulasSection" class="review-section">
+          <h3>📚 สูตรที่ควรทบทวน</h3>
+          <div id="wrongFormulasList" class="formulas-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode Selection Screen -->
+    <div id="modeScreen" class="screen">
+      <div class="mode-container">
+        <button class="btn-back" id="btnBackFromMode">← กลับ</button>
+        <h1>เลือกโหมด</h1>
+        
+        <div class="modes-grid">
+          <!-- Physics Formula Mode -->
+          <div class="mode-card active" data-mode="physics_formula">
+            <div class="mode-icon">🔬</div>
+            <h2>สมการฟิสิกส์</h2>
+            <p>ฝึกสูตรฟิสิกส์และการจัดรูปสมการ</p>
+          </div>
+
+          <!-- Math Mode (Coming Soon) -->
+          <div class="mode-card coming-soon" data-mode="physics_math">
+            <div class="mode-icon">📐</div>
+            <h2>คณิตศาสตร์สำหรับฟิสิกส์</h2>
+            <p class="coming-soon-label">Coming Soon</p>
+          </div>
+        </div>
+
+        <button id="btnSelectMode" class="btn btn-primary btn-block">เลือกโหมด</button>
+      </div>
+    </div>
+
+    <!-- Grade Selection Screen -->
+    <div id="gradeScreen" class="screen">
+      <div class="grade-container">
+        <button class="btn-back" id="btnBackFromGrade">← กลับ</button>
+        <h1>เลือกชั้นปี</h1>
+        
+        <div class="grades-grid">
+          <!-- M.4 -->
+          <div class="grade-card active" data-grade="m4">
+            <div class="grade-number">4</div>
+            <h2>มัธยมศึกษาปีที่ 4</h2>
+          </div>
+
+          <!-- M.5 (Coming Soon) -->
+          <div class="grade-card coming-soon" data-grade="m5">
+            <div class="grade-number">5</div>
+            <h2>มัธยมศึกษาปีที่ 5</h2>
+            <p class="coming-soon-label">Coming Soon</p>
+          </div>
+
+          <!-- M.6 (Coming Soon) -->
+          <div class="grade-card coming-soon" data-grade="m6">
+            <div class="grade-number">6</div>
+            <h2>มัธยมศึกษาปีที่ 6</h2>
+            <p class="coming-soon-label">Coming Soon</p>
+          </div>
+        </div>
+
+        <button id="btnSelectGrade" class="btn btn-primary btn-block">เลือกชั้นปี</button>
+      </div>
+    </div>
+
+    <!-- Lesson Selection Screen -->
+    <div id="lessonScreen" class="screen">
+      <div class="lesson-container">
+        <button class="btn-back" id="btnBackFromLesson">← กลับ</button>
+        <h1>เลือกบท</h1>
+        
+        <div id="lessonList" class="lessons-grid"></div>
+      </div>
+    </div>
+
+    <!-- Pre-Test Screen -->
+    <div id="preTestScreen" class="screen">
+      <div class="pretest-container">
+        <div class="pretest-header">
+          <h1>📋 วัดก่อนเรียน</h1>
+          <p id="pretestLessonName"></p>
+        </div>
+
+        <div class="pretest-instruction">
+          <p><strong>20 ข้อ</strong> | เวลา: ไม่จำกัด | ไม่บังคับตอบถูก</p>
+          <p>คำตอบจะช่วยให้ระบบแนะนำระดับความยากที่เหมาะสมสำหรับคุณ</p>
+        </div>
+
+        <div id="pretestContent" class="pretest-content"></div>
+
+        <button id="btnStartPreTest" class="btn btn-primary btn-block">เริ่มทำ Pre-Test</button>
+      </div>
+    </div>
+
+    <!-- Pre-Test Question Screen -->
+    <div id="pretestQuestionScreen" class="screen">
+      <div class="pretest-question-container">
+        <div class="pretest-progress">
+          <div class="progress-bar">
+            <div id="pretestProgressFill" class="progress-fill"></div>
+          </div>
+          <p id="pretestQuestionCount">ข้อ 1/20</p>
+        </div>
+
+        <div id="pretestQuestionBox" class="question-box"></div>
+
+        <div class="pretest-buttons">
+          <button id="btnPrevQuestion" class="btn btn-secondary">← ก่อนหน้า</button>
+          <button id="btnNextQuestion" class="btn btn-primary">ถัดไป →</button>
+          <button id="btnSubmitPreTest" class="btn btn-success" style="display:none;">ส่ง Pre-Test</button>
+        </div>
+
+        <div id="pretestTimer" class="timer">⏱️ <span id="timerValue">00:00</span></div>
+      </div>
+    </div>
+
+    <!-- Pre-Test Results Screen -->
+    <div id="pretestResultScreen" class="screen">
+      <div class="result-container">
+        <div class="result-header">
+          <h1>📊 ผลการวัดก่อนเรียน</h1>
+        </div>
+
+        <div class="result-stats">
+          <div class="result-score">
+            <div class="score-big" id="pretestResultScore">0/100</div>
+            <p>คะแนน</p>
+          </div>
+
+          <div class="result-details">
+            <div class="result-item">
+              <span>ตอบถูก</span>
+              <span id="pretestCorrect">0 ข้อ</span>
+            </div>
+            <div class="result-item">
+              <span>ตอบผิด</span>
+              <span id="pretestWrong">0 ข้อ</span>
+            </div>
+            <div class="result-item">
+              <span>ความแม่นยำ</span>
+              <span id="pretestAccuracy">0%</span>
+            </div>
+            <div class="result-item">
+              <span>เวลาที่ใช้</span>
+              <span id="pretestTimeUsed">0 นาที</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-recommendation">
+          <p><strong>💡 แนะนำ:</strong> <span id="recommendedLevel">Easy</span></p>
+        </div>
+
+        <button id="btnContinueToStages" class="btn btn-primary btn-block">ดำเนินต่อ →</button>
+      </div>
+    </div>
+
+    <!-- Difficulty Selection Screen -->
+    <div id="difficultyScreen" class="screen">
+      <div class="difficulty-container">
+        <button class="btn-back" id="btnBackFromDifficulty">← กลับ</button>
+        <h1>เลือกระดับความยาก</h1>
+        
+        <div class="difficulties-grid">
+          <div class="difficulty-card" data-difficulty="easy">
+            <div class="difficulty-icon">🌱</div>
+            <h2>Easy</h2>
+            <p>มีโครงสมการช่วย</p>
+            <p class="difficulty-desc">ซ่อน 1 ช่อง</p>
+          </div>
+
+          <div class="difficulty-card" data-difficulty="medium">
+            <div class="difficulty-icon">🌿</div>
+            <h2>Medium</h2>
+            <p>ลดตัวช่วยลง</p>
+            <p class="difficulty-desc">ซ่อน 2 ช่อง</p>
+          </div>
+
+          <div class="difficulty-card" data-difficulty="hard">
+            <div class="difficulty-icon">🔥</div>
+            <h2>Hard</h2>
+            <p>ตัวแปรเปิดเพียง 1 ตัว</p>
+            <p class="difficulty-desc">เหลือ 1 ตัวแปร</p>
+          </div>
+
+          <div class="difficulty-card" data-difficulty="hell">
+            <div class="difficulty-icon">💀</div>
+            <h2>Hell</h2>
+            <p>ซ่อนทั้งหมด</p>
+            <p class="difficulty-desc">ท้าทายสูงสุด</p>
+          </div>
+        </div>
+
+        <button id="btnSelectDifficulty" class="btn btn-primary btn-block">เลือกระดับ</button>
+      </div>
+    </div>
+
+    <!-- Stage Map Screen -->
+    <div id="stageMapScreen" class="screen">
+      <div class="stagemap-container">
+        <button class="btn-back" id="btnBackFromStageMap">← กลับ</button>
+        <h1 id="stageMapTitle"></h1>
+
+        <div id="stageMapContent" class="stage-map-content"></div>
+
+        <button id="btnBackFromStageMapFull" class="btn btn-secondary btn-block">กลับไปเลือกโหมด</button>
+      </div>
+    </div>
+
+    <!-- Formula Arena Screen (Game Screen) -->
+    <div id="arenaScreen" class="screen">
+      <div class="arena-container">
+        <div class="arena-header">
+          <button class="btn-back" id="btnQuitArena">✕</button>
+          <div class="arena-info">
+            <span id="arenaProgress">ข้อ 1/10</span>
+            <span id="arenaScore">คะแนน: 0</span>
+          </div>
+        </div>
+
+        <div class="arena-content">
+          <h2 id="arenaQuestionNum">ข้อที่ 1</h2>
+          
+          <div id="formulaDisplay" class="formula-display"></div>
+
+          <div id="tokenBank" class="token-bank"></div>
+
+          <div id="formulaAnswer" class="formula-answer"></div>
+        </div>
+
+        <div class="arena-buttons">
+          <button id="btnClearAnswer" class="btn btn-secondary">🔄 ล้างคำตอบ</button>
+          <button id="btnCheckAnswer" class="btn btn-primary">✓ ตรวจคำตอบ</button>
+          <button id="btnNextQuestion" class="btn btn-success" style="display:none;">→ ข้อถัดไป</button>
+        </div>
+
+        <div id="feedbackArea" class="feedback-area"></div>
+      </div>
+    </div>
+
+    <!-- Stage Result Screen -->
+    <div id="stageResultScreen" class="screen">
+      <div class="result-container">
+        <div class="result-header">
+          <h1>⭐ ผลการเล่น</h1>
+        </div>
+
+        <div class="result-stats">
+          <div class="result-score">
+            <div class="score-big" id="stageScore">0/100</div>
+            <p>คะแนน</p>
+          </div>
+
+          <div class="result-stars">
+            <div id="starsEarned">⭐⭐⭐</div>
+            <p>ดาวที่ได้</p>
+          </div>
+
+          <div class="result-details">
+            <div class="result-item">
+              <span>เวลา</span>
+              <span id="stageTime">0 วินาที</span>
+            </div>
+            <div class="result-item">
+              <span>ความแม่นยำ</span>
+              <span id="stageAccuracy">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="stageWrongFormulas" class="wrong-formulas-section"></div>
+
+        <button id="btnRetryStage" class="btn btn-secondary">🔄 ลองใหม่</button>
+        <button id="btnNextStage" class="btn btn-primary">→ ด่านถัดไป</button>
+      </div>
+    </div>
+
+    <!-- Boss Stage Screen (Final Post-Test) -->
+    <div id="bossStageScreen" class="screen">
+      <div class="boss-container">
+        <div class="boss-warning">
+          <div class="boss-icon">👹</div>
+          <h1>BOSS STAGE</h1>
+          <p>Post-Test ขั้นสุดท้าย</p>
+        </div>
+
+        <div class="boss-instruction">
+          <p>ต้องตอบให้ได้ 70% ขึ้นไปจึงจะผ่าน</p>
+        </div>
+
+        <button id="btnStartBoss" class="btn btn-primary btn-block btn-large">
+          ⚔️ เข้าสู่การต่อสู้
+        </button>
+      </div>
+    </div>
+
+    <!-- Boss Result Screen -->
+    <div id="bossResultScreen" class="screen">
+      <div class="result-container">
+        <div id="bossResultContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <?!= include('Data'); ?>
+  <?!= include('JS'); ?>
+</body>
+</html>
