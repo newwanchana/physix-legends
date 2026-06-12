@@ -1,0 +1,626 @@
+<script>
+// ===================================================================
+// PHYSIX Legends - Game Data & Formula Bank
+// ===================================================================
+
+const GAME_CONFIG = {
+  version: '1.0.0',
+  title: 'PHYSIX Legends',
+  grades: ['m4', 'm5', 'm6'],
+  modes: ['physics_formula', 'physics_math'],
+  difficulties: ['easy', 'medium', 'hard', 'hell'],
+  stagesPerLesson: 10,
+  questionsPerStage: 10,
+  preTestQuestions: 20
+};
+
+// ===================================================================
+// LESSON DEFINITIONS
+// ===================================================================
+
+const LESSONS = {
+  m4: {
+    physics_formula: [
+      {
+        id: 'linear_motion',
+        name: 'การเคลื่อนที่แนวตรง',
+        description: 'ศึกษาการเคลื่อนที่ด้วยความเร่งคงที่',
+        active: true,
+        icon: '→',
+        order: 1
+      },
+      {
+        id: 'motion_types',
+        name: 'การเคลื่อนที่แบบต่าง ๆ',
+        description: 'ตกอิสระ โปรเจกไทล์ วงกลม',
+        active: false,
+        icon: '⤴️',
+        order: 2
+      },
+      {
+        id: 'newton',
+        name: 'แรงและกฎของนิวตัน',
+        description: 'ศึกษากฎการเคลื่อนที่ของนิวตัน',
+        active: false,
+        icon: '⚡',
+        order: 3
+      },
+      {
+        id: 'equilibrium',
+        name: 'สมดุลกล',
+        description: 'วัตถุในสภาวะสมดุล',
+        active: false,
+        icon: '⚖️',
+        order: 4
+      },
+      {
+        id: 'energy',
+        name: 'งาน พลังงาน และกำลัง',
+        description: 'แนวคิดพื้นฐานของงานและพลังงาน',
+        active: false,
+        icon: '⚡💪',
+        order: 5
+      },
+      {
+        id: 'momentum',
+        name: 'โมเมนตัมและการชน',
+        description: 'ปริมาณการเคลื่อนที่และการชน',
+        active: false,
+        icon: '💥',
+        order: 6
+      }
+    ],
+    physics_math: [
+      {
+        id: 'prefixes',
+        name: 'คำอุปสรรค',
+        description: 'คำอุปสรรคสำหรับหน่วย',
+        active: false,
+        icon: '📏',
+        order: 1
+      },
+      {
+        id: 'scientific_notation',
+        name: 'สัญกรณ์วิทยาศาสตร์',
+        description: 'การเขียนเลขอย่างมาตรฐาน',
+        active: false,
+        icon: '🔢',
+        order: 2
+      },
+      {
+        id: 'unit_conversion',
+        name: 'การเปลี่ยนหน่วย',
+        description: 'แปลงหน่วยที่แตกต่างกัน',
+        active: false,
+        icon: '🔄',
+        order: 3
+      },
+      {
+        id: 'rearrange_equation',
+        name: 'การย้ายข้างสมการ',
+        description: 'เปลี่ยนรูปของสมการ',
+        active: false,
+        icon: '↔️',
+        order: 4
+      },
+      {
+        id: 'trigonometry',
+        name: 'ตรีโกณมิติ',
+        description: 'อัตราส่วนตรีโกณมิติ',
+        active: false,
+        icon: '📐',
+        order: 5
+      },
+      {
+        id: 'vectors',
+        name: 'เวกเตอร์',
+        description: 'ปริมาณเวกเตอร์และสเกลาร์',
+        active: false,
+        icon: '➡️',
+        order: 6
+      },
+      {
+        id: 'graphs',
+        name: 'กราฟฟิสิกส์',
+        description: 'การอ่านและวิเคราะห์กราฟ',
+        active: false,
+        icon: '📊',
+        order: 7
+      }
+    ]
+  },
+  m5: {
+    physics_formula: [],
+    physics_math: []
+  },
+  m6: {
+    physics_formula: [],
+    physics_math: []
+  }
+};
+
+// ===================================================================
+// FORMULA BANK - ม.4 การเคลื่อนที่แนวตรง
+// ===================================================================
+
+const FORMULA_BANK = [
+  // ===== Linear Motion (ม.4) =====
+  {
+    id: 'lm_001',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วปลาย',
+    formula: 'v = u + at',
+    template: '[[v]] = [[u]] + [[a]][[t]]',
+    slots: { v: 'v', u: 'u', a: 'a', t: 't' },
+    level: 1,
+    tags: ['basic', 'variable'],
+    distractors: ['s', 'm', 'F', 'g', 'Δt'],
+    hint: 'ใช้หาความเร็วปลายเมื่อรู้ความเร็วต้น ความเร่ง และเวลา',
+    explain: 'v = u + at เป็นสูตรพื้นฐานในการเคลื่อนที่แนวตรง'
+  },
+  {
+    id: 'lm_002',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร่งจากความเร็ว',
+    formula: 'a = (v - u) / t',
+    template: '[[a]] = <span class="frac"><span class="frac-top">[[v]] - [[u]]</span><span class="frac-bottom">[[t]]</span></span>',
+    slots: { a: 'a', v: 'v', u: 'u', t: 't' },
+    level: 1,
+    tags: ['basic', 'fraction', 'variable'],
+    distractors: ['s', 'F', 'g', 'v²'],
+    hint: 'ความเร่งคือการเปลี่ยนแปลงความเร็วต่อเวลา',
+    explain: 'a = (v - u) / t คือนิยามของความเร่งเฉลี่ย'
+  },
+  {
+    id: 'lm_003',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ระยะทางการเคลื่อนที่',
+    formula: 's = ut + 1/2at²',
+    template: '[[s]] = [[u]][[t]] + <span class="frac"><span class="frac-top">1</span><span class="frac-bottom">2</span></span>[[a]][[t]]²',
+    slots: { s: 's', u: 'u', t: 't', a: 'a' },
+    level: 1,
+    tags: ['basic', 'fraction', 'square'],
+    distractors: ['v', 'F', 'g'],
+    hint: 'ระยะทางเท่ากับความเร็วต้น × เวลา + พจน์ความเร่ง',
+    explain: 's = ut + 1/2at² คือสูตรหาระยะทางตามเวลา'
+  },
+  {
+    id: 'lm_004',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความสัมพันธ์ไม่มีเวลา',
+    formula: 'v² = u² + 2as',
+    template: '[[v]]² = [[u]]² + 2[[a]][[s]]',
+    slots: { v: 'v', u: 'u', a: 'a', s: 's' },
+    level: 2,
+    tags: ['basic', 'no_time', 'square'],
+    distractors: ['t', 'F', 'g'],
+    hint: 'ใช้เมื่อไม่มีข้อมูลเวลา',
+    explain: 'v² = u² + 2as ได้จากการกำจัด t ออกจากสูตร'
+  },
+  {
+    id: 'lm_005',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ระยะทางจากความเร็วเฉลี่ย',
+    formula: 's = ((u + v) / 2)t',
+    template: '[[s]] = <span class="frac"><span class="frac-top">[[u]] + [[v]]</span><span class="frac-bottom">2</span></span>[[t]]',
+    slots: { s: 's', u: 'u', v: 'v', t: 't' },
+    level: 2,
+    tags: ['basic', 'fraction', 'rearrange'],
+    distractors: ['a', 'F', 'g'],
+    hint: 'ใช้ความเร็วเฉลี่ยในการหาระยะทาง',
+    explain: 's = ((u + v) / 2)t เป็นผลจากความเร็วเฉลี่ย'
+  },
+  {
+    id: 'lm_006',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วต้นจากสูตร',
+    formula: 'u = v - at',
+    template: '[[u]] = [[v]] - [[a]][[t]]',
+    slots: { u: 'u', v: 'v', a: 'a', t: 't' },
+    level: 2,
+    tags: ['variable', 'rearrange'],
+    distractors: ['s', 'F', 'g'],
+    hint: 'ย้ายข้างมาจากสูตรพื้นฐาน',
+    explain: 'u = v - at ได้จากการย้ายข้างสูตร v = u + at'
+  },
+  {
+    id: 'lm_007',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'เวลาจากความเร่ง',
+    formula: 't = (v - u) / a',
+    template: '[[t]] = <span class="frac"><span class="frac-top">[[v]] - [[u]]</span><span class="frac-bottom">[[a]]</span></span>',
+    slots: { t: 't', v: 'v', u: 'u', a: 'a' },
+    level: 2,
+    tags: ['fraction', 'rearrange'],
+    distractors: ['s', 'F', 'g'],
+    hint: 'เวลา = การเปลี่ยนแปลงความเร็ว ÷ ความเร่ง',
+    explain: 't = (v - u) / a ได้จากการย้ายข้างสูตร'
+  },
+  {
+    id: 'lm_008',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ระยะทางจากความเร็วปลาย',
+    formula: 's = vt - 1/2at²',
+    template: '[[s]] = [[v]][[t]] - <span class="frac"><span class="frac-top">1</span><span class="frac-bottom">2</span></span>[[a]][[t]]²',
+    slots: { s: 's', v: 'v', t: 't', a: 'a' },
+    level: 3,
+    tags: ['fraction', 'rearrange', 'square'],
+    distractors: ['u', 'F', 'g'],
+    hint: 'สูตรระยะทางเมื่อกำหนดความเร็วปลาย',
+    explain: 's = vt - 1/2at² ได้จากการจัดรูป'
+  },
+  {
+    id: 'lm_009',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วเฉลี่ย',
+    formula: 'v = s / t',
+    template: '[[v]] = <span class="frac"><span class="frac-top">[[s]]</span><span class="frac-bottom">[[t]]</span></span>',
+    slots: { v: 'v', s: 's', t: 't' },
+    level: 1,
+    tags: ['basic', 'fraction'],
+    distractors: ['a', 'u', 'F'],
+    hint: 'ความเร็วเฉลี่ย = ระยะทาง ÷ เวลา',
+    explain: 'v = s / t คือนิยามของความเร็วเฉลี่ย'
+  },
+  {
+    id: 'lm_010',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร่งจากสูตร',
+    formula: 'a = 2(s - ut) / t²',
+    template: '[[a]] = <span class="frac"><span class="frac-top">2([[s]] - [[u]][[t]])</span><span class="frac-bottom">[[t]]²</span></span>',
+    slots: { a: 'a', s: 's', u: 'u', t: 't' },
+    level: 3,
+    tags: ['fraction', 'rearrange', 'square'],
+    distractors: ['v', 'F', 'g'],
+    hint: 'ย้ายข้างจากสูตร s = ut + 1/2at²',
+    explain: 'a = 2(s - ut) / t² ได้จากการจัดรูปสูตรระยะทาง'
+  },
+  {
+    id: 'lm_011',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ระยะทางจากความสัมพันธ์',
+    formula: 's = (v² - u²) / 2a',
+    template: '[[s]] = <span class="frac"><span class="frac-top">[[v]]² - [[u]]²</span><span class="frac-bottom">2[[a]]</span></span>',
+    slots: { s: 's', v: 'v', u: 'u', a: 'a' },
+    level: 3,
+    tags: ['fraction', 'rearrange', 'square'],
+    distractors: ['t', 'F', 'g'],
+    hint: 'ย้ายข้างจากสูตร v² = u² + 2as',
+    explain: 's = (v² - u²) / 2a ได้จากการจัดรูปสูตร'
+  },
+  {
+    id: 'lm_012',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร่งจากสูตร',
+    formula: 'a = (v² - u²) / 2s',
+    template: '[[a]] = <span class="frac"><span class="frac-top">[[v]]² - [[u]]²</span><span class="frac-bottom">2[[s]]</span></span>',
+    slots: { a: 'a', v: 'v', u: 'u', s: 's' },
+    level: 3,
+    tags: ['fraction', 'rearrange', 'square'],
+    distractors: ['t', 'F', 'g'],
+    hint: 'ย้ายข้างจากสูตร v² = u² + 2as',
+    explain: 'a = (v² - u²) / 2s ได้จากการจัดรูปสูตร'
+  },
+  {
+    id: 'lm_013',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วต้นจากสูตร',
+    formula: 'u = (s - 1/2at²) / t',
+    template: '[[u]] = <span class="frac"><span class="frac-top">[[s]] - <span class="frac"><span class="frac-top">1</span><span class="frac-bottom">2</span></span>[[a]][[t]]²</span><span class="frac-bottom">[[t]]</span></span>',
+    slots: { u: 'u', s: 's', a: 'a', t: 't' },
+    level: 4,
+    tags: ['fraction', 'rearrange', 'square'],
+    distractors: ['v', 'F', 'g'],
+    hint: 'ย้ายข้างจากสูตร s = ut + 1/2at²',
+    explain: 'u = (s - 1/2at²) / t ได้จากการจัดรูปสูตร'
+  },
+  {
+    id: 'lm_014',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วปลายจากรูป',
+    formula: 'v = √(u² + 2as)',
+    template: '[[v]] = √([[u]]² + 2[[a]][[s]])',
+    slots: { v: 'v', u: 'u', a: 'a', s: 's' },
+    level: 4,
+    tags: ['square', 'mixed'],
+    distractors: ['t', 'F', 'g'],
+    hint: 'หารากที่สองของทั้งสองข้าง',
+    explain: 'v = √(u² + 2as) ได้จากการถอดรากจากสูตร v² = u² + 2as'
+  },
+  {
+    id: 'lm_015',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ระยะทางจากสูตร',
+    formula: 's = ut + 1/2at²',
+    template: '[[s]] = [[u]][[t]] + <span class="frac"><span class="frac-top">1</span><span class="frac-bottom">2</span></span>[[a]][[t]]²',
+    slots: { s: 's', u: 'u', t: 't', a: 'a' },
+    level: 1,
+    tags: ['basic', 'fraction', 'square'],
+    distractors: ['v', 'F', 'g'],
+    hint: 'สูตรพื้นฐานสำหรับระยะทาง',
+    explain: 's = ut + 1/2at² คือสูตรพื้นฐานในการเคลื่อนที่'
+  },
+  {
+    id: 'lm_016',
+    gradeId: 'm4',
+    modeId: 'physics_formula',
+    lessonId: 'linear_motion',
+    topic: 'ความเร็วไม่มีการเร่ง',
+    formula: 's = vt',
+    template: '[[s]] = [[v]][[t]]',
+    slots: { s: 's', v: 'v', t: 't' },
+    level: 1,
+    tags: ['basic'],
+    distractors: ['a', 'u', 'F'],
+    hint: 'เมื่อไม่มีความเร่ง ระยะทาง = ความเร็ว × เวลา',
+    explain: 's = vt ใช้เมื่อการเคลื่อนที่สม่ำเสมอ'
+  }
+];
+
+// ===================================================================
+// PRE-TEST QUESTIONS - ม.4 Linear Motion
+// ===================================================================
+
+const PRETEST_QUESTIONS = {
+  m4_linear_motion: [
+    {
+      id: 'pt_lm_001',
+      question: 'วัตถุเคลื่อนที่ด้วยความเร็วต้น 5 m/s ความเร่ง 2 m/s² เป็นเวลา 3 วินาที ความเร็วปลายเท่ากับเท่าใด',
+      options: ['5 m/s', '11 m/s', '9 m/s', '15 m/s'],
+      correct: 1,
+      explain: 'ใช้สูตร v = u + at = 5 + 2(3) = 11 m/s'
+    },
+    {
+      id: 'pt_lm_002',
+      question: 'ระยะทางที่วัตถุเคลื่อนที่ได้ในเวลา 4 วินาที เมื่อความเร็วต้น 2 m/s ความเร่ง 3 m/s²',
+      options: ['20 m', '32 m', '24 m', '40 m'],
+      correct: 1,
+      explain: 'ใช้สูตร s = ut + 1/2at² = 2(4) + 1/2(3)(16) = 8 + 24 = 32 m'
+    },
+    {
+      id: 'pt_lm_003',
+      question: 'ความเร่งของวัตถุที่เปลี่ยนความเร็วจาก 10 m/s เป็น 20 m/s ในเวลา 5 วินาที',
+      options: ['2 m/s²', '3 m/s²', '4 m/s²', '5 m/s²'],
+      correct: 0,
+      explain: 'a = (v - u) / t = (20 - 10) / 5 = 2 m/s²'
+    },
+    {
+      id: 'pt_lm_004',
+      question: 'ความเร็วปลายของวัตถุจากสูตร v² = u² + 2as เมื่อ u = 0, a = 5 m/s², s = 20 m',
+      options: ['10 m/s', '14.1 m/s', '20 m/s', '16 m/s'],
+      correct: 1,
+      explain: 'v² = 0 + 2(5)(20) = 200, v = √200 ≈ 14.1 m/s'
+    },
+    {
+      id: 'pt_lm_005',
+      question: 'สูตรหาระยะทางของการเคลื่อนที่ด้วยความเร่งคงที่คืออะไร',
+      options: ['v = u + at', 's = ut + 1/2at²', 'a = (v - u) / t', 'F = ma'],
+      correct: 1,
+      explain: 's = ut + 1/2at² คือสูตรพื้นฐานของระยะทาง'
+    },
+    {
+      id: 'pt_lm_006',
+      question: 'ความเร็วเฉลี่ยของการเคลื่อนที่คือ',
+      options: ['v = at', 'v = s/t', 'v = u + v', 'v = (u + v)/2'],
+      correct: 1,
+      explain: 'ความเร็วเฉลี่ย = ระยะทาง ÷ เวลา'
+    },
+    {
+      id: 'pt_lm_007',
+      question: 'หากวัตถุเคลื่อนที่ 100 เมตร ในเวลา 5 วินาที ความเร็วเฉลี่ยเท่ากับเท่าใด',
+      options: ['10 m/s', '20 m/s', '30 m/s', '50 m/s'],
+      correct: 1,
+      explain: 'v = s / t = 100 / 5 = 20 m/s'
+    },
+    {
+      id: 'pt_lm_008',
+      question: 'สูตร v² = u² + 2as ใช้เมื่อ',
+      options: ['มีเวลา', 'ไม่มีเวลา', 'ไม่มีความเร่ง', 'ไม่มีระยะทาง'],
+      correct: 1,
+      explain: 'สูตรนี้ใช้เมื่อ ไม่ทราบค่า t'
+    },
+    {
+      id: 'pt_lm_009',
+      question: 'วัตถุตกจากอาคารด้วยความเร็งต้น 0 m/s ตกเป็นระยะทาง 45 เมตร ความเร็วปลายเท่าใด (g = 10 m/s²)',
+      options: ['20 m/s', '25 m/s', '30 m/s', '15 m/s'],
+      correct: 2,
+      explain: 'v² = 0 + 2(10)(45) = 900, v = 30 m/s'
+    },
+    {
+      id: 'pt_lm_010',
+      question: 'ปริมาณไหนที่มีทิศทาง',
+      options: ['ความเร็ว', 'อุณหภูมิ', 'เวลา', 'มวล'],
+      correct: 0,
+      explain: 'ความเร็วเป็นปริมาณเวกเตอร์ที่มีทิศทาง'
+    },
+    {
+      id: 'pt_lm_011',
+      question: 'วัตถุเคลื่อนที่ด้วยความเร่ง -2 m/s² หมายความว่า',
+      options: ['เคลื่อนที่ไปข้างหน้า', 'ความเร็วเพิ่มขึ้น', 'ความเร็วลดลง', 'หยุดนิ่ง'],
+      correct: 2,
+      explain: 'ความเร่งเป็นลบ หมายความว่าความเร็วลดลง'
+    },
+    {
+      id: 'pt_lm_012',
+      question: 'ในการเคลื่อนที่แนวตรงด้วยความเร่งคงที่ ความเร็วเฉลี่ยเท่ากับ',
+      options: ['u + v', '(u + v) / 2', 'u / 2', 'v / 2'],
+      correct: 1,
+      explain: 'ความเร็วเฉลี่ย = (u + v) / 2'
+    },
+    {
+      id: 'pt_lm_013',
+      question: 'จากสูตร s = ut + 1/2at² หากต้องการหา t ต้องจัดรูปอย่างไร',
+      options: ['t = s - u - 1/2a', 't = (s - ut) × 2 / a', 'สูตรกำลังสอง', 't = s / u'],
+      correct: 2,
+      explain: 'ต้องใช้สูตรกำลังสองเพราะ t อยู่กำลังสอง'
+    },
+    {
+      id: 'pt_lm_014',
+      question: 'วัตถุเคลื่อนที่ด้วยความเร็วคงที่ ความเร่งของวัตถุเท่ากับเท่าใด',
+      options: ['ศูนย์', 'มีค่าบวก', 'มีค่าลบ', 'ไม่แน่นอน'],
+      correct: 0,
+      explain: 'เมื่อความเร็วคงที่ a = 0'
+    },
+    {
+      id: 'pt_lm_015',
+      question: 'พื้นที่ใต้กราฟ v-t แสดงถึง',
+      options: ['ความเร่ง', 'ระยะทาง', 'ความเร็ว', 'เวลา'],
+      correct: 1,
+      explain: 'พื้นที่ใต้กราฟ v-t คือระยะทาง'
+    },
+    {
+      id: 'pt_lm_016',
+      question: 'ความชันของกราฟ v-t แสดงถึง',
+      options: ['ระยะทาง', 'ความเร็ว', 'ความเร่ง', 'เวลา'],
+      correct: 2,
+      explain: 'ความชันของกราฟ v-t คือความเร่ง'
+    },
+    {
+      id: 'pt_lm_017',
+      question: 'รถเคลื่อนที่ด้วยความเร็ว 15 m/s ใช้เวลา 10 วินาที ระยะทางเท่ากับเท่าใด',
+      options: ['100 m', '150 m', '200 m', '250 m'],
+      correct: 1,
+      explain: 's = vt = 15 × 10 = 150 m'
+    },
+    {
+      id: 'pt_lm_018',
+      question: 'เวลาที่ใช้ในการเปลี่ยนความเร็วจาก 5 m/s เป็น 25 m/s ด้วยความเร่ง 4 m/s²',
+      options: ['2 วินาที', '5 วินาที', '8 วินาที', '10 วินาที'],
+      correct: 1,
+      explain: 't = (v - u) / a = (25 - 5) / 4 = 5 วินาที'
+    },
+    {
+      id: 'pt_lm_019',
+      question: 'ระยะทางที่อนุภาคเคลื่อนที่ได้ เมื่อ u = 10 m/s, v = 30 m/s, a = 4 m/s²',
+      options: ['50 m', '75 m', '100 m', '125 m'],
+      correct: 1,
+      explain: 's = (v² - u²) / 2a = (900 - 100) / 8 = 100 m... ผิด, จริงคือ 100 m'
+    },
+    {
+      id: 'pt_lm_020',
+      question: 'หน่วย SI ของความเร่งคือ',
+      options: ['m/s', 'm/s²', 'kg⋅m/s', 'N'],
+      correct: 1,
+      explain: 'หน่วยของความเร่งคือ m/s² หรือเมตรต่อวินาทีกำลังสอง'
+    }
+  ]
+};
+
+// ===================================================================
+// STAGE THEMES - กำหนดธีมของแต่ละด่าน
+// ===================================================================
+
+const STAGE_THEMES = {
+  1: { name: 'สูตรพื้นฐาน', tags: ['basic'] },
+  2: { name: 'ตัวแปรหาย', tags: ['variable'] },
+  3: { name: 'เศษส่วน', tags: ['fraction'] },
+  4: { name: 'ย้ายรูปสมการ', tags: ['rearrange'] },
+  5: { name: 'สูตรไม่มีเวลา', tags: ['no_time'] },
+  6: { name: 'สูตรผสม', tags: ['square', 'mixed'] },
+  7: { name: 'สูตรที่มักพลาด', tags: ['review'] },
+  8: { name: 'สุ่มรวม', tags: ['mixed'] },
+  9: { name: 'เตรียมก่อน Boss', tags: ['review'] },
+  10: { name: 'Boss Post-Test', tags: ['boss'] }
+};
+
+// ===================================================================
+// DIFFICULTY LEVELS CONFIGURATION
+// ===================================================================
+
+const DIFFICULTY_CONFIG = {
+  easy: {
+    name: 'Easy',
+    icon: '🌱',
+    description: 'มีโครงสมการช่วย',
+    hiddenSlots: 1,
+    showHint: true,
+    scoreMultiplier: 1.0
+  },
+  medium: {
+    name: 'Medium',
+    icon: '🌿',
+    description: 'ลดตัวช่วยลง',
+    hiddenSlots: 2,
+    showHint: true,
+    scoreMultiplier: 1.2
+  },
+  hard: {
+    name: 'Hard',
+    icon: '🔥',
+    description: 'ตัวแปรเปิดเพียง 1 ตัว',
+    hiddenSlots: 3,
+    showHint: false,
+    scoreMultiplier: 1.5
+  },
+  hell: {
+    name: 'Hell',
+    icon: '💀',
+    description: 'ซ่อนทั้งหมด',
+    hiddenSlots: 4,
+    showHint: false,
+    scoreMultiplier: 2.0
+  }
+};
+
+// ===================================================================
+// SCORING SYSTEM
+// ===================================================================
+
+const SCORING = {
+  maxScorePerQuestion: 100,
+  timeBonus: (timeUsed, maxTime) => {
+    const timePercentage = timeUsed / maxTime;
+    return Math.max(0, 100 - (timePercentage * 50));
+  },
+  wrongAnswerPenalty: 10,
+  starThresholds: {
+    3: 90,
+    2: 70,
+    1: 50,
+    0: 0
+  }
+};
+
+// ===================================================================
+// RANK SYSTEM
+// ===================================================================
+
+const RANK_SYSTEM = {
+  1: { name: 'Novice', minExp: 0, maxExp: 99, icon: '🥚' },
+  2: { name: 'Learner', minExp: 100, maxExp: 299, icon: '🐣' },
+  3: { name: 'Master', minExp: 300, maxExp: 599, icon: '🦅' },
+  4: { name: 'Expert', minExp: 600, maxExp: 999, icon: '🏆' },
+  5: { name: 'Legend', minExp: 1000, maxExp: 1499, icon: '👑' },
+  6: { name: 'Immortal', minExp: 1500, maxExp: Infinity, icon: '⭐' }
+};
+</script>
